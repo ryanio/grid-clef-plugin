@@ -5,6 +5,7 @@ module.exports = {
   displayName: 'Swarm',
   type: 'storage',
   repository: 'https://ethswarmstore.blob.core.windows.net',
+  binaryName: `swarm${process.platform === 'win32' ? '.exe' : ''}`,
   filter: {
     name: {
       includes: [platform]
