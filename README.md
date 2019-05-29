@@ -1,20 +1,19 @@
-# Grid Swarm Plugin
+# Grid Clef Plugin
 
-This is the example Swarm integration for Grid based on the tutorial:
-[Building a P2P file sharing app with Swarm and Grid](https://github.com/PhilippLgh/ethereum-grid-tutorials/blob/master/Swarm.md)
+This is the example Clef integration for Grid.
 
 If you want to use this plugin in Grid you can add it to `plugins.json` like this:
 
 ```
 {
-  "name": "swarm",
-  "displayName": "Swarm",
-  "type": "storage",
+  "name": "clef",
+  "displayName": "Clef",
+  "type": "signer",
   "author": {
-    "name": "Philipp Langhans",
-    "email": "philipp@ethereum.org",
-    "address": "9fae5e6e2583216f23bdf94f74ceae26e209b31e"
+    "name": "Ryan Ghods",
+    "email": "ryan@ethereum.org",
+    "address": "21DB66eA245761161369B0e01be91E001fF98489"
   },
-  "location": "https://github.com/PhilippLgh/grid-swarm-extension"
+  "location": "https://github.com/ryanio/grid-clef-plugin"
 }
 ```

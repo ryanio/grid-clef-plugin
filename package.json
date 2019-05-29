@@ -1,5 +1,5 @@
 {
-  "name": "grid-swarm-plugin",
+  "name": "grid-clef-plugin",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,5 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^1.17.1"
+  }
 }
