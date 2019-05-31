@@ -26,8 +26,8 @@ switch (process.platform) {
   }
 }
 
-const pendingRequests = [];
-const pendingNotifications = [];
+let pendingRequests = [];
+let pendingNotifications = [];
 const requestMethods = [
   'ui_approveTx',
   'ui_approveSignData',
@@ -72,10 +72,8 @@ const handleData = (data, emit) => {
 };
 
 const removePendingRequest = id => {
-  pendingRequests.splice(
-    pendingRequests.findIndex(pendingRequests, item => item.id === id),
-    1
-  );
+  const filtered = pendingRequests.filter(item => item.id != id);
+  pendingRequests = filtered;
 };
 
 const removePendingNotification = index => {
@@ -96,8 +94,8 @@ module.exports = {
   handleData: (data, emit) => handleData(data, emit),
   getPendingRequests: () => pendingRequests,
   getPendingNotifications: () => pendingNotifications,
-  removePendingRequest: id => removePendingRequest(id),
-  removePendingNotification: index => removePendingNotification(index),
+  removePendingRequest,
+  removePendingNotification,
   requestMethods,
   notificationMethods,
   settings: [
