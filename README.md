@@ -12,7 +12,7 @@ If you want to use this plugin in Grid you can add it to `plugins.json` like thi
   "author": {
     "name": "Ryan Ghods",
     "email": "ryan@ethereum.org",
-    "address": "21DB66eA245761161369B0e01be91E001fF98489"
+    "address": "84741b205fe071833b97b081a87dc39fae078ff3"
   },
   "location": "https://github.com/ryanio/grid-clef-plugin"
 }

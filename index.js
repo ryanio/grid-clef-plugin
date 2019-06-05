@@ -92,10 +92,12 @@ module.exports = {
   prefix: `geth-alltools-${platform}`,
   binaryName: process.platform === 'win32' ? 'clef.exe' : 'clef',
   handleData: (data, emit) => handleData(data, emit),
-  getPendingRequests: () => pendingRequests,
-  getPendingNotifications: () => pendingNotifications,
-  removePendingRequest,
-  removePendingNotification,
+  api: {
+    getPendingRequests: () => pendingRequests,
+    getPendingNotifications: () => pendingNotifications,
+    removePendingRequest,
+    removePendingNotification
+  },
   requestMethods,
   notificationMethods,
   settings: [

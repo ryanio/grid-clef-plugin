@@ -1,9 +1,10 @@
 {
   "name": "grid-clef-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "publish": "npm pack && ethpkg sign --publish true",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
