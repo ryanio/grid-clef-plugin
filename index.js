@@ -26,8 +26,6 @@ switch (process.platform) {
   }
 }
 
-let pendingRequests = [];
-let pendingNotifications = [];
 const requestMethods = [
   'ui_approveTx',
   'ui_approveSignData',
@@ -41,8 +39,61 @@ const notificationMethods = [
   'ui_onApprovedTx',
   'ui_onSignerStartup'
 ];
+let queue = [];
 
-const handleData = (data, emit) => {
+const notify = (payload, Notification) => {
+  const title = 'Grid: Clef';
+  let body = payload.text ? payload.text : 'New Request';
+  switch (payload.method) {
+    case 'ui_onSignerStartup':
+      const http = payload.params[0].info.extapi_http;
+      const ipc = payload.params[0].info.extapi_ipc;
+      let location;
+      if (http !== 'n/a') {
+        location = http;
+      } else if (ipc !== 'n/a') {
+        location = ipc;
+      }
+      if (location) {
+        body = `Signer started on ${location}`;
+      } else {
+        body = `Signer started`;
+      }
+      break;
+    case 'ui_showInfo': {
+      body = payload.params[0].text;
+      break;
+    }
+    case 'ui_onInputRequired': {
+      const { title: payloadTitle, prompt: payloadPrompt } = payload.params[0];
+      body = `${payloadTitle}: ${payloadPrompt}`;
+      break;
+    }
+    case 'ui_approveTx':
+      body = 'New Transaction Request';
+      break;
+    case 'ui_approveSignData':
+      body = 'New Sign Data Request';
+      break;
+    case 'ui_approveNewAccount':
+      body = 'New Account Request';
+      break;
+    case 'ui_approveListing':
+      body = 'New Account Listing Request';
+      break;
+    default:
+      break;
+  }
+  const notification = new Notification({ title, body });
+  notification.show();
+};
+
+const handleData = (data, emit, Notification) => {
+  if (data.includes('endpoint opened')) {
+    emit('connected');
+    emit('newState', 'connected');
+  }
+
   if (data.charAt(0) !== '{') {
     // Not JSON
     return;
@@ -51,33 +102,21 @@ const handleData = (data, emit) => {
   let payload;
   try {
     payload = JSON.parse(data);
-  } catch (error) {
-    console.error('Error parsing incoming data to JSON: ', error);
-  }
+  } catch (error) {}
 
   if (!payload) {
     return;
   }
 
-  const { method } = payload;
-  if (method && requestMethods.includes(method)) {
-    pendingRequests.push(payload);
-    emit('pluginRequest', payload);
-    console.log('pluginRequest', payload);
-  } else if (method && notificationMethods.includes(method)) {
-    pendingNotifications.push(payload);
-    emit('pluginNotification', payload);
-    console.log('pluginNotification', payload);
+  queue.push(payload);
+  emit('pluginData', payload);
+  if (payload.text || payload.method) {
+    notify(payload, Notification);
   }
 };
 
-const removePendingRequest = id => {
-  const filtered = pendingRequests.filter(item => item.id != id);
-  pendingRequests = filtered;
-};
-
-const removePendingNotification = index => {
-  pendingNotifications.splice(index, 1);
+const removeQueue = index => {
+  queue.splice(index, 1);
 };
 
 module.exports = {
@@ -91,12 +130,11 @@ module.exports = {
   },
   prefix: `geth-alltools-${platform}`,
   binaryName: process.platform === 'win32' ? 'clef.exe' : 'clef',
-  handleData: (data, emit) => handleData(data, emit),
+  handleData: (data, emit, Notification) =>
+    handleData(data, emit, Notification),
   api: {
-    getPendingRequests: () => pendingRequests,
-    getPendingNotifications: () => pendingNotifications,
-    removePendingRequest,
-    removePendingNotification
+    getQueue: () => queue,
+    removeQueue
   },
   requestMethods,
   notificationMethods,
@@ -106,14 +144,14 @@ module.exports = {
       default: configDir,
       label: 'Config Directory',
       flag: '--configdir %s',
-      type: 'path'
+      type: 'directory'
     },
     // {
     //   id: 'keystoreDir',
     //   default: keystoreDir,
     //   label: 'Keystore Directory',
     //   flag: '--keystore %s',
-    //   type: 'path'
+    //   type: 'directory'
     // },
     {
       id: 'chainId',
@@ -129,9 +167,18 @@ module.exports = {
         {
           value: 'rpc',
           label: 'RPC HTTP',
-          flag: '--rpc --ipcdisable --stdio-ui --stdio-ui-test'
+          flag: '--rpc --ipcdisable --stdio-ui'
         },
-        { value: 'ipc', label: 'IPC', flag: '' }
+        { value: 'ipc', label: 'IPC', flag: '--stdio-ui' }
+      ]
+    },
+    {
+      id: 'testMode',
+      default: 'disabled',
+      label: 'Interactive Test Mode',
+      options: [
+        { value: 'disabled', label: 'Disabled', flag: '' },
+        { value: 'enabled', label: 'Enabled', flag: '--stdio-ui-test' }
       ]
     }
   ]
