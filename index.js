@@ -18,8 +18,9 @@ switch (process.platform) {
   }
   case 'darwin': {
     platform = 'darwin';
-    keystoreDir = '~/Library/Ethereum/keystore';
-    configDir = '~/.clef';
+    const homedir = require('os').homedir();
+    keystoreDir = `${homedir}/Library/Ethereum/keystore`;
+    configDir = `${homedir}/.clef`;
     break;
   }
   default: {
@@ -126,12 +127,14 @@ module.exports = {
   name: 'clef',
   repository: 'https://gethstore.blob.core.windows.net',
   filter: {
-    version: '>=1.9.0' // only included in alltool package after (>=) 1.9.0
+    version: '>=1.9.0', // only included in alltool package after (>=) 1.9.0
+    name: {
+      excludes: ['unstable', 'swarm']
+    }
   },
   prefix: `geth-alltools-${platform}`,
   binaryName: process.platform === 'win32' ? 'clef.exe' : 'clef',
-  handleData: (data, emit, Notification) =>
-    handleData(data, emit, Notification),
+  handleData,
   api: {
     getQueue: () => queue,
     removeQueue
@@ -146,13 +149,13 @@ module.exports = {
       flag: '--configdir %s',
       type: 'directory'
     },
-    // {
-    //   id: 'keystoreDir',
-    //   default: keystoreDir,
-    //   label: 'Keystore Directory',
-    //   flag: '--keystore %s',
-    //   type: 'directory'
-    // },
+    {
+      id: 'keystoreDir',
+      default: keystoreDir,
+      label: 'Keystore Directory',
+      flag: '--keystore %s',
+      type: 'directory'
+    },
     {
       id: 'chainId',
       default: '1',
