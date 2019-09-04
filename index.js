@@ -251,6 +251,16 @@ module.exports = {
       {
         name: 'Clef Docs',
         url: 'https://geth.ethereum.org/clef/Overview'
+      },
+      {
+        name: 'Changelog: Internal API',
+        url:
+          'https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/intapi_changelog.md'
+      },
+      {
+        name: 'Changelog: External API',
+        url:
+          'https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/extapi_changelog.md'
       }
     ],
     community: [
