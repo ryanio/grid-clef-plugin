@@ -105,7 +105,6 @@ const notify = (payload, Notification) => {
       break;
   }
   const notification = new Notification({ title, body });
-  console.log(notification);
   notification.show();
 };
 
