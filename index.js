@@ -27,6 +27,24 @@ switch (process.platform) {
   }
 }
 
+const findIpcPathInLogs = logs => {
+  let ipcPath;
+  for (const logPart of logs) {
+    const found = logPart.includes('IPC endpoint opened');
+    if (found) {
+      ipcPath = logPart.split('=')[1].trim();
+      // fix double escaping
+      if (ipcPath.includes('\\\\')) {
+        ipcPath = ipcPath.replace(/\\\\/g, '\\');
+      }
+      console.log('Found IPC path: ', ipcPath);
+      return ipcPath;
+    }
+  }
+  console.log('IPC path not found in logs', logs);
+  return null;
+};
+
 const requestMethods = [
   'ui_approveTx',
   'ui_approveSignData',
@@ -41,6 +59,7 @@ const notificationMethods = [
   'ui_onSignerStartup'
 ];
 let queue = [];
+let pluginEmit;
 
 const notify = (payload, Notification) => {
   const title = 'Grid: Clef';
@@ -86,13 +105,20 @@ const notify = (payload, Notification) => {
       break;
   }
   const notification = new Notification({ title, body });
+  console.log(notification);
   notification.show();
 };
 
 const handleData = (data, emit, Notification) => {
+  // Set pluginEmit for use elsewhere
+  if (!this.pluginEmit) {
+    pluginEmit = emit;
+  }
+
   if (data.includes('endpoint opened')) {
-    emit('connected');
     emit('newState', 'connected');
+    // Clear queue in case of any requests from a previous run
+    queue = [];
   }
 
   if (data.charAt(0) !== '{') {
@@ -111,6 +137,7 @@ const handleData = (data, emit, Notification) => {
 
   queue.push(payload);
   emit('pluginData', payload);
+  emit('setAppBadge', { appId: 'grid-clef-app', count: queue.length });
   if (payload.text || payload.method) {
     notify(payload, Notification);
   }
@@ -118,6 +145,20 @@ const handleData = (data, emit, Notification) => {
 
 const removeQueue = index => {
   queue.splice(index, 1);
+  if (pluginEmit) {
+    pluginEmit('setAppBadge', { appId: 'grid-clef-app', count: queue.length });
+  }
+};
+
+const getAppBadges = () => {
+  return {
+    'grid-clef-app': queue.length
+  };
+};
+
+const beforeStop = () => {
+  queue = [];
+  pluginEmit('setAppBadge', { appId: 'grid-clef-app', count: 0 });
 };
 
 module.exports = {
@@ -134,11 +175,14 @@ module.exports = {
   },
   prefix: `geth-alltools-${platform}`,
   binaryName: process.platform === 'win32' ? 'clef.exe' : 'clef',
+  resolveIpc: logs => findIpcPathInLogs(logs),
   handleData,
   api: {
     getQueue: () => queue,
-    removeQueue
+    removeQueue,
+    getAppBadges
   },
+  beforeStop,
   requestMethods,
   notificationMethods,
   settings: [
@@ -164,12 +208,12 @@ module.exports = {
     },
     {
       id: 'api',
-      default: 'rpc',
-      label: 'API',
+      default: 'http',
+      label: 'RPC External API',
       options: [
         {
-          value: 'rpc',
-          label: 'RPC HTTP',
+          value: 'http',
+          label: 'HTTP',
           flag: '--rpc --ipcdisable --stdio-ui'
         },
         { value: 'ipc', label: 'IPC', flag: '--stdio-ui' }
@@ -184,5 +228,37 @@ module.exports = {
         { value: 'enabled', label: 'Enabled', flag: '--stdio-ui-test' }
       ]
     }
-  ]
+  ],
+  about: {
+    description:
+      'Clef is an independent Ethereum signer created by the Geth team with security as its highest priority.',
+    apps: [
+      {
+        name: 'Grid Client',
+        url: 'package://github.com/ryanio/grid-clef-app'
+      },
+      {
+        name: 'RPC Tester App',
+        url: 'package://github.com/ryanio/grid-rpc-app'
+      }
+    ],
+    links: [
+      {
+        name: 'GitHub Repository',
+        url: 'https://github.com/ethereum/go-ethereum/tree/master/cmd/clef'
+      }
+    ],
+    docs: [
+      {
+        name: 'Clef Docs',
+        url: 'https://geth.ethereum.org/clef/Overview'
+      }
+    ],
+    community: [
+      {
+        name: 'Discord Chat',
+        url: 'https://discordapp.com/invite/nthXNEv'
+      }
+    ]
+  }
 };
