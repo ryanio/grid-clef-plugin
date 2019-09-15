@@ -1,5 +1,6 @@
 let keystoreDir = `${process.env.APPDATA}/Ethereum/keystore`;
 let configDir = `${process.env.APPDATA}/.clef`;
+let auditLog = `${process.env.APPDATA}/.clef/audit.log`;
 let platform = 'windows';
 
 // Platform specific initialization
@@ -8,12 +9,14 @@ switch (process.platform) {
     platform = 'windows';
     keystoreDir = `${process.env.APPDATA}/Ethereum/keystore`;
     configDir = `${process.env.APPDATA}/.clef`;
+    auditLog = `${process.env.APPDATA}/.clef/audit.log`;
     break;
   }
   case 'linux': {
     platform = 'linux';
     keystoreDir = '~/.ethereum/keystore';
     configDir = '~/.clef';
+    auditLog = '~/.clef/audit.log';
     break;
   }
   case 'darwin': {
@@ -21,6 +24,7 @@ switch (process.platform) {
     const homedir = require('os').homedir();
     keystoreDir = `${homedir}/Library/Ethereum/keystore`;
     configDir = `${homedir}/.clef`;
+    auditLog = `${homedir}/.clef/audit.log`;
     break;
   }
   default: {
@@ -198,6 +202,13 @@ module.exports = {
       label: 'Keystore Directory',
       flag: '--keystore %s',
       type: 'directory'
+    },
+    {
+      id: 'auditLog',
+      default: auditLog,
+      label: 'Audit Log File',
+      flag: '--auditlog %s',
+      type: 'file'
     },
     {
       id: 'chainId',
