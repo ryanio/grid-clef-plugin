@@ -1,34 +1,8 @@
 const userDataPath = require('electron').app.getPath('userData');
-const auditLog = `${userDataPath}/client_plugins/clef/audit.log`;
-
-let keystoreDir = `${process.env.APPDATA}/Ethereum/keystore`;
-let configDir = `${process.env.APPDATA}/.clef`;
-let platform = 'windows';
-
-// Platform specific initialization
-switch (process.platform) {
-  case 'win32': {
-    platform = 'windows';
-    keystoreDir = `${process.env.APPDATA}/Ethereum/keystore`;
-    configDir = `${process.env.APPDATA}/.clef`;
-    break;
-  }
-  case 'linux': {
-    platform = 'linux';
-    keystoreDir = '~/.ethereum/keystore';
-    configDir = '~/.clef';
-    break;
-  }
-  case 'darwin': {
-    platform = 'darwin';
-    const homedir = require('os').homedir();
-    keystoreDir = `${homedir}/Library/Ethereum/keystore`;
-    configDir = `${homedir}/.clef`;
-    break;
-  }
-  default: {
-  }
-}
+const auditLog =
+  process.platform === 'win32'
+    ? `${userDataPath}\\client_plugins\\clef\\audit.log`
+    : `${userDataPath}/client_plugins/clef/audit.log`;
 
 const findIpcPathInLogs = logs => {
   let ipcPath;
@@ -175,7 +149,7 @@ module.exports = {
       excludes: ['unstable', 'swarm']
     }
   },
-  prefix: `geth-alltools-${platform}`,
+  prefix: `geth-alltools-${process.platform}`,
   binaryName: process.platform === 'win32' ? 'clef.exe' : 'clef',
   resolveIpc: logs => findIpcPathInLogs(logs),
   handleData,
@@ -190,17 +164,19 @@ module.exports = {
   settings: [
     {
       id: 'configDir',
-      default: configDir,
+      default: '',
       label: 'Config Directory',
       flag: '--configdir %s',
-      type: 'directory'
+      type: 'directory',
+      ignoreIfEmpty: true
     },
     {
       id: 'keystoreDir',
-      default: keystoreDir,
+      default: '',
       label: 'Keystore Directory',
       flag: '--keystore %s',
-      type: 'directory'
+      type: 'directory',
+      ignoreIfEmpty: true
     },
     {
       id: 'auditLog',
